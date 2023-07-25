@@ -14,6 +14,7 @@ abstract contract Context {
 
 abstract contract Ownable is Context {
     address private _owner;
+
     event OwnershipTransferred(
         address indexed previousOwner,
         address indexed newOwner
@@ -248,9 +249,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
             currentAllowance >= amount,
             "ERC20: transfer amount exceeds allowance"
         );
-        unchecked {
-            _approve(sender, _msgSender(), currentAllowance - amount);
-        }
+    unchecked {
+        _approve(sender, _msgSender(), currentAllowance - amount);
+    }
 
         return true;
     }
@@ -276,9 +277,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
             currentAllowance >= subtractedValue,
             "ERC20: decreased allowance below zero"
         );
-        unchecked {
-            _approve(_msgSender(), spender, currentAllowance - subtractedValue);
-        }
+    unchecked {
+        _approve(_msgSender(), spender, currentAllowance - subtractedValue);
+    }
 
         return true;
     }
@@ -298,9 +299,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
             senderBalance >= amount,
             "ERC20: transfer amount exceeds balance"
         );
-        unchecked {
-            _balances[sender] = senderBalance - amount;
-        }
+    unchecked {
+        _balances[sender] = senderBalance - amount;
+    }
         _balances[recipient] += amount;
 
         emit Transfer(sender, recipient, amount);
@@ -327,9 +328,9 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
         uint256 accountBalance = _balances[account];
         require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
-        unchecked {
-            _balances[account] = accountBalance - amount;
-        }
+    unchecked {
+        _balances[account] = accountBalance - amount;
+    }
         _totalSupply -= amount;
 
         emit Transfer(account, address(0), amount);
@@ -392,7 +393,6 @@ interface IUniswapV2Factory {
 
     function setFeeToSetter(address) external;
 }
-
 
 
 interface IUniswapV2Pair {
@@ -470,9 +470,9 @@ interface IUniswapV2Pair {
     function token1() external view returns (address);
 
     function getReserves()
-        external
-        view
-        returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+    external
+    view
+    returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
 
     function price0CumulativeLast() external view returns (uint256);
 
@@ -524,9 +524,9 @@ interface IUniswapV2Router02 {
         address to,
         uint256 deadline
     )
-        external
-        payable
-        returns (uint256 amountToken, uint256 amountETH, uint256 liquidity);
+    external
+    payable
+    returns (uint256 amountToken, uint256 amountETH, uint256 liquidity);
 
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint256 amountIn,
@@ -552,35 +552,35 @@ interface IUniswapV2Router02 {
     ) external;
 }
 
-contract ISOMATestUpdate is ERC20, Ownable {
-   
+contract ISOMA is ERC20, Ownable {
+
     event SwapBackSuccess(
         uint256 tokenAmount,
         uint256 ethAmountReceived,
         bool success
     );
+
     bool private swapping;
-    address public marketingAndDevWallet = address(0x80151B037B8991dF386393Bc4cB8bDcEf92d428A); //your marketingAndDev wallet here
-    address public stakingWallet = address(0x37c80F860900ce47A823D7B2dDbEB6c2e36bD4E8); // your staking wallet here
-    address public charityWallet = address(0x1345FC5E39B4Da4D6bEc265D30C1C891243b3a00); // your charity Wallet here
+    address public marketingAndDevWallet = address(0x80121); //your marketingAndDev wallet here
+    address public stakingWallet = address(0x37c80); // your staking wallet here
+    address public charityWallet = address(0x1345F); // your charity Wallet here
 
-
-    uint256 _totalSupply = 100_000_000_000_000_000 * 1e9;
-    uint256 public maxTransactionAmount = (_totalSupply * 20) / 1000; // 2% from total supply maxTransactionAmountTxn;
-    uint256 public swapTokensAtAmount = (_totalSupply * 10) / 1000000; // 0.001% of the supply (swap tokens greator than equal to this amount). 
-    uint256 public maxWallet = (_totalSupply * 20) / 1000; // 2% from total supply maxWallet (valid for first hour of trade start)
+    uint256 _totalSupply = 100_000_000_000_000_000 * 1e18;
+    uint256 public maxTransactionAmount = (_totalSupply * 10) / 1000; // 1% from total supply maxTransactionAmountTxn;
+    uint256 public swapTokensAtAmount = (_totalSupply * 10) / 1000000; // 0.001% of the supply (swap tokens greator than equal to this amount).
+    uint256 public maxWallet = (_totalSupply * 10) / 1000; // 1% from total supply maxWallet (valid for first hour of trade start)
 
     bool public limitsInEffect = true;
     bool public tradingActive = false;
     bool public swapEnabled = false;
 
-          ///Buy Fees
+    ///Buy Fees
     uint16 private stakingFeeBuy = 3;
     uint16 private autoLPFeeBuy = 3;
     uint16 private marketingAndDevFeeBuy = 3;
     uint16 private charityFeeBuy = 1;
 
-         ///Sell Fees
+    ///Sell Fees
     uint16 private stakingFeeSell = 3;
     uint16 private autoLPFeeSell = 3;
     uint16 private marketingAndDevFeeSell = 3;
@@ -596,16 +596,15 @@ contract ISOMATestUpdate is ERC20, Ownable {
     mapping(address => bool) public _isExcludedMaxTransactionAmount;
     mapping(address => bool) public automatedMarketMakerPairs;
 
-    constructor() ERC20("ISOMATestUpdate", "ISOMATU") {
+    constructor() ERC20("ISOMA", "ISOMA") {
 
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(
-            0xD99D1c33F9fC3444f8101754aBC46c52416550D1
-//            0xD99D1c33F9fC3444f8101754aBC46c52416550D1//PCS V2 Router
+            0x10ED43C718714eb63d5aA57B78B54704E256024E//PCS V2 Router
         );
 
         uniswapV2Router = _uniswapV2Router;
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
-            .createPair(address(this), _uniswapV2Router.WETH());
+        .createPair(address(this), _uniswapV2Router.WETH());
         _setAutomatedMarketMakerPair(address(uniswapV2Pair), true);
         // exclude from paying fees or having max transaction amount
         excludeFromFees(owner(), true);
@@ -623,49 +622,44 @@ contract ISOMATestUpdate is ERC20, Ownable {
 
     receive() external payable {}
 
-    function decimals() public view virtual override returns (uint8) {
-        return 9;
-    }
-
     /// @notice once enabled, can never be turned off
     function enableTrading() external onlyOwner {
-        require (!tradingActive, "Trading is already live");
+        require(!tradingActive, "Trading is already live");
         tradingActive = true;
         swapEnabled = true;
     }
 
-    ///@notice toggle b/w limits globally 
+    ///@notice toggle b/w limits globally
     function toggleLimits() external onlyOwner returns (bool) {
         limitsInEffect = !limitsInEffect;
         return true;
     }
-    
 
     ///@notice update fees for buy
-    ///@param marketing: update marketingAndDevFee 
-    ///@param charity: update charity fee 
-    ///@param autoLP: update autoLP fee 
+    ///@param marketing: update marketingAndDevFee
+    ///@param charity: update charity fee
+    ///@param autoLP: update autoLP fee
     ///@param staking: update staking fee
-    function updateBuyFee (uint16 marketing, uint16 charity, uint16 autoLP, uint16 staking) external onlyOwner {
-       require (marketing + charity + autoLP + staking <= 10, "Max buy fees limit is 10 percent");
-       marketingAndDevFeeBuy = marketing;
-       charityFeeBuy = charity;
-       autoLPFeeBuy = autoLP;
-       stakingFeeBuy = staking;
+    function updateBuyFee(uint16 marketing, uint16 charity, uint16 autoLP, uint16 staking) external onlyOwner {
+        require(marketing + charity + autoLP + staking <= 10, "Max buy fees limit is 10 percent");
+        marketingAndDevFeeBuy = marketing;
+        charityFeeBuy = charity;
+        autoLPFeeBuy = autoLP;
+        stakingFeeBuy = staking;
     }
 
 
     ///@notice update fees for sell
-    ///@param marketing: update marketingAndDevFee 
-    ///@param charity: update charity fee 
-    ///@param autoLP: update autoLP fee 
+    ///@param marketing: update marketingAndDevFee
+    ///@param charity: update charity fee
+    ///@param autoLP: update autoLP fee
     ///@param staking: update staking fee
-    function updateSellFee (uint16 marketing, uint16 charity, uint16 autoLP, uint16 staking) external onlyOwner {
-       require (marketing + charity + autoLP + staking <= 10, "Max Sell fees limit is 10 percent");
-       marketingAndDevFeeSell = marketing;
-       charityFeeSell = charity;
-       autoLPFeeSell = autoLP;
-       stakingFeeSell = staking;
+    function updateSellFee(uint16 marketing, uint16 charity, uint16 autoLP, uint16 staking) external onlyOwner {
+        require(marketing + charity + autoLP + staking <= 10, "Max Sell fees limit is 10 percent");
+        marketingAndDevFeeSell = marketing;
+        charityFeeSell = charity;
+        autoLPFeeSell = autoLP;
+        stakingFeeSell = staking;
     }
 
     ///@notice update address status from maxTxAmount
@@ -686,26 +680,26 @@ contract ISOMATestUpdate is ERC20, Ownable {
     ///@notice claim stucked tokens from contract
     ///@param token: token address to rescue
     ///Requirements - can't claim native token
-    function claimStuckedtokens (IERC20 token) external onlyOwner{
-       require(address(token) != address(this), "can't claim native token");
-      uint256 balance = token.balanceOf(address(this));
-      token.transfer(owner(), balance);
+    function claimStuckedtokens(IERC20 token) external onlyOwner {
+        require(address(token) != address(this), "can't claim native token");
+        uint256 balance = token.balanceOf(address(this));
+        token.transfer(owner(), balance);
     }
-    
+
     ///@notice exlcude user or address from fees
     ///@param account: account to add or remove from excludeFees mapping
     ///@param excluded: bool value, true means excluded, false means included
     function excludeFromFees(address account, bool excluded) public onlyOwner {
         _isExcludedFromFees[account] = excluded;
     }
-    
+
 
     ///@notice swapTokens amount update
     ///@param newAmount: new amount for token swap
     function updateSwapTokensAmount(uint256 newAmount) external onlyOwner {
         swapTokensAtAmount = newAmount;
     }
-    
+
 
     ///@notice add or remove new pairs
     ///@param pair: pair address
@@ -726,7 +720,7 @@ contract ISOMATestUpdate is ERC20, Ownable {
     function _setAutomatedMarketMakerPair(address pair, bool value) private {
         automatedMarketMakerPairs[pair] = value;
     }
-    
+
     ///@dev udpate the wallets for fees
     ///@param marketingAndDevWallet_ : new marketingAndDev wallet
     ///@param charityWallet_ : new charity wallet
@@ -736,17 +730,17 @@ contract ISOMATestUpdate is ERC20, Ownable {
         address charityWallet_,
         address stakingWallet_
     ) public onlyOwner {
-       require (marketingAndDevWallet_ != address(0) && charityWallet_ != address(0) && stakingWallet_ != address(0),"error: zero address not allowed");
+        require(marketingAndDevWallet_ != address(0) && charityWallet_ != address(0) && stakingWallet_ != address(0), "error: zero address not allowed");
         charityWallet = charityWallet_;
         marketingAndDevWallet = marketingAndDevWallet_;
         stakingWallet = stakingWallet_;
     }
-    
+
     ///@notice returns if address is excluded or not
     function isExcludedFromFees(address account) public view returns (bool) {
         return _isExcludedFromFees[account];
     }
-    
+
 
     ///@notice transfer function to manage token transfer/fees/limits
     function _transfer(
@@ -771,8 +765,8 @@ contract ISOMATestUpdate is ERC20, Ownable {
                         "Trading is not enabled yet."
                     );
                 }
-             
-         
+
+
                 //when buy
                 if (
                     automatedMarketMakerPairs[from] &&
@@ -801,7 +795,7 @@ contract ISOMATestUpdate is ERC20, Ownable {
                         amount + balanceOf(to) <= maxWallet,
                         "Max wallet exceeded"
                     );
-                 }
+                }
             }
         }
 
@@ -833,16 +827,16 @@ contract ISOMATestUpdate is ERC20, Ownable {
             // on sell
             if (automatedMarketMakerPairs[to] && sellFees > 0) {
                 fees = (amount * sellFees) / 100;
-                stakingFee = (fees * stakingFeeSell) / sellFees; 
+                stakingFee = (fees * stakingFeeSell) / sellFees;
             }
-            
+
             // on buy
             else if (automatedMarketMakerPairs[from] && buyFees > 0) {
                 fees = (amount * buyFees) / 100;
-                stakingFee = (fees * stakingFeeBuy) / buyFees; 
+                stakingFee = (fees * stakingFeeBuy) / buyFees;
 
             }
-           
+
             if (fees > 0) {
                 super._transfer(from, address(this), fees - stakingFee);
                 super._transfer(from, stakingWallet, stakingFee);
@@ -851,7 +845,7 @@ contract ISOMATestUpdate is ERC20, Ownable {
         }
         super._transfer(from, to, amount);
     }
-    
+
 
     ///@notice private function to swap tax to bnb
     function swapTokensForEth(uint256 tokenAmount) private {
@@ -869,7 +863,7 @@ contract ISOMATestUpdate is ERC20, Ownable {
             block.timestamp
         );
     }
-    
+
     ///@notice manage fee distribution swaps
     function swapBack() private {
         uint256 contractBalance = balanceOf(address(this));
@@ -878,35 +872,35 @@ contract ISOMATestUpdate is ERC20, Ownable {
             return;
         }
         if (contractBalance >= swapTokensAtAmount) {
-            uint256 totalBuyFee = marketingAndDevFeeBuy  + charityFeeBuy + autoLPFeeBuy;
+            uint256 totalBuyFee = marketingAndDevFeeBuy + charityFeeBuy + autoLPFeeBuy;
             uint256 totalSellFee = marketingAndDevFeeSell + charityFeeSell + autoLPFeeSell;
             uint256 totalFee = totalBuyFee + totalSellFee;
-            uint256 lpFee = (autoLPFeeBuy + autoLPFeeSell) /2;
+            uint256 lpFee = (autoLPFeeBuy + autoLPFeeSell) / 2;
             uint256 lpTokens = (contractBalance * (autoLPFeeBuy + autoLPFeeSell)) / totalFee;
             uint256 lpSwap = lpTokens / 2;
             uint256 divider = totalFee - lpFee;
             swapTokensForEth(contractBalance - lpSwap);
             uint256 ethReceived = address(this).balance;
-            
-            uint256 amountToLP = (ethReceived * (autoLPFeeBuy + autoLPFeeSell)) / (divider * 2) ;
+
+            uint256 amountToLP = (ethReceived * (autoLPFeeBuy + autoLPFeeSell)) / (divider * 2);
             uint256 amountToCharity = (ethReceived * (charityFeeBuy + charityFeeSell)) / divider;
-            if(lpSwap > 0 && amountToLP > 0){
-               addLiquidity(lpSwap, amountToLP);
+            if (lpSwap > 0 && amountToLP > 0) {
+                addLiquidity(lpSwap, amountToLP);
             }
-             (success, ) = address(charityWallet).call{value: amountToCharity}("");
-            (success, ) = address(marketingAndDevWallet).call{value: address(this).balance}("");
-           
+            (success,) = address(charityWallet).call{value : amountToCharity}("");
+            (success,) = address(marketingAndDevWallet).call{value : address(this).balance}("");
+
             emit SwapBackSuccess(contractBalance - lpSwap, ethReceived, success);
         }
     }
-    
+
     ///@notice add liquidity (autoLP)
     function addLiquidity(uint256 tokenAmount, uint256 ethAmount) private {
         // approve token transfer to cover all possible scenarios
         _approve(address(this), address(uniswapV2Router), tokenAmount);
 
         // add the liquidity
-        uniswapV2Router.addLiquidityETH{value: ethAmount}(
+        uniswapV2Router.addLiquidityETH{value : ethAmount}(
             address(this),
             tokenAmount,
             0, // slippage is unavoidable
@@ -915,13 +909,13 @@ contract ISOMATestUpdate is ERC20, Ownable {
             block.timestamp
         );
     }
-                              ///// Getter Functions /////
+    ///// Getter Functions /////
 
-    function getBuyFees () external view returns (uint16 stakingFee, uint16 autolPFee, uint16 marketingAndDevFee, uint16 charityFee){
+    function getBuyFees() external view returns (uint16 stakingFee, uint16 autolPFee, uint16 marketingAndDevFee, uint16 charityFee){
         return (stakingFeeBuy, autoLPFeeBuy, marketingAndDevFeeBuy, charityFeeBuy);
     }
 
-    function getSellFees () external view returns (uint16 stakingFee, uint16 autolPFee, uint16 marketingAndDevFee, uint16 charityFee){
+    function getSellFees() external view returns (uint16 stakingFee, uint16 autolPFee, uint16 marketingAndDevFee, uint16 charityFee){
         return (stakingFeeSell, autoLPFeeSell, marketingAndDevFeeSell, charityFeeSell);
     }
 }

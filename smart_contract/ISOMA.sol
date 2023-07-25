@@ -561,9 +561,9 @@ contract ISOMA is ERC20, Ownable {
     );
 
     bool private swapping;
-    address public marketingAndDevWallet = address(0x80121); //your marketingAndDev wallet here
-    address public stakingWallet = address(0x37c80); // your staking wallet here
-    address public charityWallet = address(0x1345F); // your charity Wallet here
+    address public marketingAndDevWallet = address(0x5923C9DAEc713C872c5944dA20157a89B8F4A474); //your marketingAndDev wallet here
+    address public stakingWallet = address(0x2AB9E204B7393a924D67D4348c1B86839f931a5b); // your staking wallet here
+    address public charityWallet = address(0xf4F70F7B1Bb82b2acd180a875D96e4A67D329a81); // your charity Wallet here
 
     uint256 _totalSupply = 100_000_000_000_000_000 * 1e18;
     uint256 public maxTransactionAmount = (_totalSupply * 10) / 1000; // 1% from total supply maxTransactionAmountTxn;
