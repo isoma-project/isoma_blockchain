@@ -552,7 +552,7 @@ interface IUniswapV2Router02 {
     ) external;
 }
 
-contract ISOMA is ERC20, Ownable {
+contract ISOMATest is ERC20, Ownable {
 
     event SwapBackSuccess(
         uint256 tokenAmount,
@@ -561,9 +561,9 @@ contract ISOMA is ERC20, Ownable {
     );
 
     bool private swapping;
-    address public marketingAndDevWallet = address(0x80121); //your marketingAndDev wallet here
-    address public stakingWallet = address(0x37c80); // your staking wallet here
-    address public charityWallet = address(0x1345F); // your charity Wallet here
+    address public marketingAndDevWallet = address(0x097fdE36e1cA5a824536ae71AF8E146c144b96f4); //your marketingAndDev wallet here
+    address public stakingWallet = address(0x3Fed0378d183f317f2e49b80Cf88ed6041b940b6); // your staking wallet here
+    address public charityWallet = address(0x46670d6c7490c08CA4926211a2d2353EF6E473d1); // your charity Wallet here
 
     uint256 _totalSupply = 100_000_000_000_000_000 * 1e18;
     uint256 public maxTransactionAmount = (_totalSupply * 10) / 1000; // 1% from total supply maxTransactionAmountTxn;
@@ -596,10 +596,10 @@ contract ISOMA is ERC20, Ownable {
     mapping(address => bool) public _isExcludedMaxTransactionAmount;
     mapping(address => bool) public automatedMarketMakerPairs;
 
-    constructor() ERC20("ISOMA", "ISOMA") {
+    constructor() ERC20("ISOMA Test", "ISOMATest") {
 
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(
-            0x10ED43C718714eb63d5aA57B78B54704E256024E//PCS V2 Router
+            0xD99D1c33F9fC3444f8101754aBC46c52416550D1//PCS V2 Router
         );
 
         uniswapV2Router = _uniswapV2Router;
