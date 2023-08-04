@@ -565,14 +565,14 @@ contract ISOMATest is ERC20, Ownable {
     address public stakingWallet = address(0x3Fed0378d183f317f2e49b80Cf88ed6041b940b6); // your staking wallet here
     address public charityWallet = address(0x46670d6c7490c08CA4926211a2d2353EF6E473d1); // your charity Wallet here
 
+
     uint256 _totalSupply = 100_000_000_000_000_000 * 1e18;
     uint256 public maxTransactionAmount = (_totalSupply * 10) / 1000; // 1% from total supply maxTransactionAmountTxn;
     uint256 public swapTokensAtAmount = (_totalSupply * 10) / 1000000; // 0.001% of the supply (swap tokens greator than equal to this amount).
     uint256 public maxWallet = (_totalSupply * 10) / 1000; // 1% from total supply maxWallet (valid for first hour of trade start)
 
     bool public limitsInEffect = true;
-    bool public tradingActive = false;
-    bool public swapEnabled = false;
+    bool public swapEnabled = true;
 
     ///Buy Fees
     uint16 private stakingFeeBuy = 3;
@@ -599,7 +599,7 @@ contract ISOMATest is ERC20, Ownable {
     constructor() ERC20("ISOMA Test", "ISOMATest") {
 
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(
-            0xD99D1c33F9fC3444f8101754aBC46c52416550D1//PCS V2 Router
+            0xD99D1c33F9fC3444f8101754aBC46c52416550D1//PCS V2 Router TestNet
         );
 
         uniswapV2Router = _uniswapV2Router;
@@ -622,11 +622,8 @@ contract ISOMATest is ERC20, Ownable {
 
     receive() external payable {}
 
-    /// @notice once enabled, can never be turned off
-    function enableTrading() external onlyOwner {
-        require(!tradingActive, "Trading is already live");
-        tradingActive = true;
-        swapEnabled = true;
+    function decimals() public view virtual override returns (uint8) {
+        return 18;
     }
 
     ///@notice toggle b/w limits globally
@@ -647,7 +644,6 @@ contract ISOMATest is ERC20, Ownable {
         autoLPFeeBuy = autoLP;
         stakingFeeBuy = staking;
     }
-
 
     ///@notice update fees for sell
     ///@param marketing: update marketingAndDevFee
@@ -693,13 +689,11 @@ contract ISOMATest is ERC20, Ownable {
         _isExcludedFromFees[account] = excluded;
     }
 
-
     ///@notice swapTokens amount update
     ///@param newAmount: new amount for token swap
     function updateSwapTokensAmount(uint256 newAmount) external onlyOwner {
         swapTokensAtAmount = newAmount;
     }
-
 
     ///@notice add or remove new pairs
     ///@param pair: pair address
@@ -741,7 +735,6 @@ contract ISOMATest is ERC20, Ownable {
         return _isExcludedFromFees[account];
     }
 
-
     ///@notice transfer function to manage token transfer/fees/limits
     function _transfer(
         address from,
@@ -759,14 +752,6 @@ contract ISOMATest is ERC20, Ownable {
                 to != address(0xdead) &&
                 !swapping
             ) {
-                if (!tradingActive) {
-                    require(
-                        _isExcludedFromFees[from] || _isExcludedFromFees[to],
-                        "Trading is not enabled yet."
-                    );
-                }
-
-
                 //when buy
                 if (
                     automatedMarketMakerPairs[from] &&
@@ -875,6 +860,9 @@ contract ISOMATest is ERC20, Ownable {
             uint256 totalBuyFee = marketingAndDevFeeBuy + charityFeeBuy + autoLPFeeBuy;
             uint256 totalSellFee = marketingAndDevFeeSell + charityFeeSell + autoLPFeeSell;
             uint256 totalFee = totalBuyFee + totalSellFee;
+            if (totalFee == 0) {
+                return;
+            }
             uint256 lpFee = (autoLPFeeBuy + autoLPFeeSell) / 2;
             uint256 lpTokens = (contractBalance * (autoLPFeeBuy + autoLPFeeSell)) / totalFee;
             uint256 lpSwap = lpTokens / 2;
@@ -887,6 +875,8 @@ contract ISOMATest is ERC20, Ownable {
             if (lpSwap > 0 && amountToLP > 0) {
                 addLiquidity(lpSwap, amountToLP);
             }
+
+
             (success,) = address(charityWallet).call{value : amountToCharity}("");
             (success,) = address(marketingAndDevWallet).call{value : address(this).balance}("");
 
