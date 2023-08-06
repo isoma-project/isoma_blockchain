@@ -566,7 +566,7 @@ contract ISOMATest is ERC20, Ownable {
     address public charityWallet = address(0x46670d6c7490c08CA4926211a2d2353EF6E473d1); // your charity Wallet here
 
 
-    uint256 _totalSupply = 100_000_000_000_000_000 * 1e18;
+    uint256 _totalSupply = 100_000_000_000_000_000 * 1e9;
     uint256 public maxTransactionAmount = (_totalSupply * 10) / 1000; // 1% from total supply maxTransactionAmountTxn;
     uint256 public swapTokensAtAmount = (_totalSupply * 10) / 1000000; // 0.001% of the supply (swap tokens greator than equal to this amount).
     uint256 public maxWallet = (_totalSupply * 10) / 1000; // 1% from total supply maxWallet (valid for first hour of trade start)
@@ -623,7 +623,7 @@ contract ISOMATest is ERC20, Ownable {
     receive() external payable {}
 
     function decimals() public view virtual override returns (uint8) {
-        return 18;
+        return 9;
     }
 
     ///@notice toggle b/w limits globally
