@@ -270,7 +270,7 @@ interface IERC20 {
 /// @title Staking smart contract with 4 pools
 /// @notice each pool has different lockup period,
 /// different apy's
-contract IsomaStaking is Ownable, ReentrancyGuard {
+contract ISOMAStaking is Ownable, ReentrancyGuard {
 
     /// @notice StakingPool struct
     struct StakingPool {
