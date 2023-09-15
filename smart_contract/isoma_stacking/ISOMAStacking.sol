@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
-
 // File: @openzeppelin/contracts/security/ReentrancyGuard.sol
 // OpenZeppelin Contracts (last updated v4.9.0) (security/ReentrancyGuard.sol)
+
+
 
 /**
  * @dev Contract module that helps prevent reentrant calls to a function.
@@ -79,10 +80,8 @@ abstract contract ReentrancyGuard {
 
 // File: @openzeppelin/contracts/utils/Context.sol
 
-
 // OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
 
-pragma solidity ^0.8.0;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -106,6 +105,7 @@ abstract contract Context {
 
 // File: @openzeppelin/contracts/access/Ownable.sol
 // OpenZeppelin Contracts (last updated v4.9.0) (access/Ownable.sol)
+
 
 
 /**
@@ -264,10 +264,13 @@ interface IERC20 {
 }
 
 
+
+// File: staking.sol
+
 /// @title Staking smart contract with 4 pools
 /// @notice each pool has different lockup period,
 /// different apy's
-contract ISOMAStaking is Ownable, ReentrancyGuard {
+contract IsomaStaking is Ownable, ReentrancyGuard {
 
     /// @notice StakingPool struct
     struct StakingPool {
@@ -295,7 +298,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
 
 
     StakingPool[] public pools;
-    mapping(address => uint256) public stakingOption; // used to check active pool so user can stake in single pool at a time
     mapping(uint256 => mapping(address => User)) public users; //see user stats for particular pool
     mapping(uint256 => uint256) public walletCap; // pool wise max cap per wallet
     mapping(uint256 => uint256) public poolRewards; // set pool allocation
@@ -314,7 +316,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
     error AmountExceedStakedAmount();
     error LockupPeriodNotPassed();
     error WalletCapExceeds();
-    error AlreadyStakedInOtherPool();
     error ZeroAddress();
     error MaxFeeCap();
     error ApyRangeExceeds();
@@ -348,14 +349,14 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
     function injectReward (uint256 tokenAmount) external onlyOwner {
         if(tokenAmount <= 0) {revert AmountShouldBeGreaterThanZero();}
         token.transferFrom(msg.sender, (address(this)), tokenAmount);
-        uint256 pool1 = (pools[0].totalRewardPercent * tokenAmount) / 100;
-        uint256 pool2 = (pools[1].totalRewardPercent * tokenAmount) / 100;
-        uint256 pool3 = (pools[2].totalRewardPercent * tokenAmount) / 100;
-        uint256 pool4 = (pools[3].totalRewardPercent * tokenAmount) / 100;
-        poolRewards[0] = poolRewards[0] + pool1;
-        poolRewards[1] = poolRewards[1] + pool2;
-        poolRewards[2] = poolRewards[2] + pool3;
-        poolRewards[3] = poolRewards[3] + pool4;
+        uint256 pool0 = (pools[0].totalRewardPercent * tokenAmount) / 100;
+        uint256 pool1 = (pools[1].totalRewardPercent * tokenAmount) / 100;
+        uint256 pool2 = (pools[2].totalRewardPercent * tokenAmount) / 100;
+        uint256 pool3 = (pools[3].totalRewardPercent * tokenAmount) / 100;
+        poolRewards[0] = poolRewards[0] + pool0;
+        poolRewards[1] = poolRewards[1] + pool1;
+        poolRewards[2] = poolRewards[2] + pool2;
+        poolRewards[3] = poolRewards[3] + pool3;
 
         totalRewards = totalRewards + tokenAmount;
 
@@ -382,15 +383,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
         User storage user = users[_poolId][msg.sender];
         if(user.stakedAmount + _amountToStake > walletCap[_poolId]) {revert WalletCapExceeds();}
 
-        for (uint256 i = 0; i < pools.length; i++) {
-            if (i != _poolId && users[i][msg.sender].stakedAmount > 0) {
-                revert AlreadyStakedInOtherPool();
-            }
-        }
-
-        if (user.stakedAmount == 0) {
-            stakingOption[msg.sender] = _poolId;
-        }
         _claimReward(_poolId, msg.sender);
         uint256 depositFee = (_amountToStake * depositFeePercentage) / 100;
         uint256 amountAfterFee = _amountToStake - depositFee;
@@ -411,13 +403,14 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
 
     /// @notice user can withdraw his tokens
     /// @param _amountToWithdraw: number of tokens he want to withdraw
+    ///@param poolId: pool id
     /// Requirements--
     /// staked amount must be greater than zero
     /// input amount must be greater than zero
     /// lock period should have been passed
-    function withdraw(uint256 _amountToWithdraw) external nonReentrant{
+    function withdraw(uint256 poolId, uint256 _amountToWithdraw) external nonReentrant{
 
-        uint256 poolId = stakingOption[msg.sender];
+
         StakingPool storage pool = pools[poolId];
 
         User storage user = users[poolId][msg.sender];
@@ -437,10 +430,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
         _claimReward(poolId, msg.sender);
         token.transfer(msg.sender, amountAfterFee);
 
-
-        if (user.stakedAmount == 0) {
-            stakingOption[msg.sender] = 0;
-        }
         emit Withdraw(msg.sender, poolId, _amountToWithdraw);
 
     }
@@ -454,8 +443,8 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
 
     /// @notice this function can be used to withdraw tokens earlier than lock period
     /// there is  penalty on initial deposit for doing that.
-    function emergencyWithdraw() external nonReentrant {
-        uint256 poolId = stakingOption[msg.sender];
+    ///@param poolId: pool id
+    function emergencyWithdraw(uint256 poolId) external nonReentrant {
 
         StakingPool storage pool = pools[poolId];
         User storage user = users[poolId][msg.sender];
@@ -469,7 +458,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
         pool.totalStaked = pool.totalStaked - stakedAmount;
         user.stakedAmount = 0;
         user.lastRewardClaim = block.timestamp;
-        stakingOption[msg.sender] = 0;
         token.transfer(feeWallet, penalty);
         token.transfer(msg.sender, amountAfterPenalty);
         emit EmergencyWithdraw(msg.sender, poolId, amountAfterPenalty);
@@ -482,7 +470,7 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
     /// pool id must be valid, and new apy should be greator than 0.2% and less than 50%
     function updatePoolAPY (uint256 _poolId, uint256 _newAPY) external onlyOwner {
         StakingPool storage pool = pools[_poolId];
-        if(_newAPY <= 2 && _newAPY > 500){ revert ApyRangeExceeds();}
+        if(_newAPY <= 2 || _newAPY > 500){ revert ApyRangeExceeds();}
         pool.apy = _newAPY;
     }
 
@@ -494,8 +482,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
         if(newPercentage < 5) {revert PercentShouldBeAtleastFive();}
         StakingPool storage pool = pools[_poolId];
         pool.totalRewardPercent = newPercentage;
-        uint256 rewards = (totalRewards * newPercentage) / 100;
-        poolRewards[_poolId] = rewards;
 
     }
 
@@ -599,4 +585,6 @@ contract ISOMAStaking is Ownable, ReentrancyGuard {
 
         return rewardAmount;
     }
+
+
 }
