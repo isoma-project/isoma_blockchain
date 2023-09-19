@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /// @title Staking smart contract with 4 pools
 /// @notice each pool has different lockup period,
 /// different apy's
-contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
+contract ISOMAStacking is Ownable2Step, ReentrancyGuard {
 
     /// @notice StakingPool struct
     struct StakingPool {
@@ -312,7 +312,7 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
         uint256 stakedAmount = user.stakedAmount;
         uint256 elapsedTime = block.timestamp - lastRewardClaim;
 
-        uint256 rewardAmount = (stakedAmount * pool.apy * elapsedTime) / (1000 * 365 days);
+        uint256 rewardAmount = (stakedAmount * pool.apy * elapsedTime) / (10000 * 365 days);
 
         return rewardAmount;
     }
