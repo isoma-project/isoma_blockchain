@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /// @title Staking smart contract with 4 pools
 /// @notice each pool has different lockup period,
 /// different apy's
-contract ISOMAStacking is Ownable2Step, ReentrancyGuard {
+contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
 
     /// @notice StakingPool struct
     struct StakingPool {
