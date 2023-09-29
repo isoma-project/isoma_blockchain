@@ -276,10 +276,9 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
         User storage user = users[_poolId][_user];
 
         uint256 rewards = calculateRewards(_poolId, _user);
+        uint256 availableRewards = poolRewards[_poolId];
 
-        if (rewards > 0) {
-
-            uint256 availableRewards = poolRewards[_poolId];
+        if (rewards > 0 && availableRewards > 0) {
 
             if (availableRewards < rewards) {
                 totalRewards = totalRewards - availableRewards;
@@ -288,8 +287,7 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
                 user.lastRewardClaim = block.timestamp;
                 token.transfer(_user, availableRewards);
                 emit RewardClaimed(_user, _poolId, availableRewards);
-            }
-            else {
+            } else {
                 totalRewards = totalRewards - rewards;
                 poolRewards[_poolId] = poolRewards[_poolId] - rewards;
                 user.rewardClaimed = user.rewardClaimed + rewards;
