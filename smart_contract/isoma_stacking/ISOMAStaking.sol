@@ -81,7 +81,6 @@ abstract contract ReentrancyGuard {
 // File: @openzeppelin/contracts/utils/Context.sol
 // OpenZeppelin Contracts v4.4.1 (utils/Context.sol)
 
-
 /**
  * @dev Provides information about the current execution context, including the
  * sender of the transaction and its data. While these are generally available
@@ -104,7 +103,6 @@ abstract contract Context {
 
 // File: @openzeppelin/contracts/access/Ownable.sol
 // OpenZeppelin Contracts (last updated v4.9.0) (access/Ownable.sol)
-
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -185,7 +183,6 @@ abstract contract Ownable is Context {
 
 // File: @openzeppelin/contracts/access/Ownable2Step.sol
 // OpenZeppelin Contracts (last updated v4.9.0) (access/Ownable2Step.sol)
-
 
 /**
  * @dev Contract module which provides access control mechanism, where
@@ -317,11 +314,9 @@ interface IERC20 {
 
 // File: @openzeppelin/contracts/interfaces/IERC20.sol
 
-
 // OpenZeppelin Contracts v4.4.1 (interfaces/IERC20.sol)
 
 pragma solidity ^0.8.0;
-
 
 // File: IsomaStaking.sol
 
@@ -359,7 +354,6 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
     uint256 public penaltyPercentage = 500; // 5% penalty fee
     uint256 public totalRewards; //total available rewards
 
-
     StakingPool[] public pools;
     mapping(uint256 => mapping(address => User)) public users; //see user stats for particular pool
     mapping(uint256 => uint256) public walletCap; // pool wise max cap per wallet
@@ -387,7 +381,6 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
     error PercentShouldBeAtleastFive();
     error CanNotClaimMainToken();
     error EnterValidAmount();
-
 
     constructor(address _token) {
         token = IERC20(_token);
