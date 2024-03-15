@@ -448,28 +448,28 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
     }
 
     /// @notice user can deposit tokens to his choice of pool
-    /// @param _poolId: pool id in which user want to stake
-    /// @param _amountToStake: number of tokens user want to stake
+    /// @param poolIdParam: pool id in which user want to stake
+    /// @param amountToStakeParam: number of tokens user want to stake
     /// Requirements --
     /// number of tokens to be staked must be approved.
     /// pool id should be valid
     /// amount must greator than zero
     /// amount must be within pool cap
     /// amount must be userWalletCap for particular pool
-    function deposit(uint256 _poolId, uint256 _amountToStake) external nonReentrant {
+    function deposit(uint256 poolIdParam, uint256 amountToStakeParam) external nonReentrant {
 
-        if (_poolId >= pools.length) {revert InvalidPool();}
-        if (_amountToStake <= 0) {revert AmountShouldBeGreaterThanZero();}
+        if (poolIdParam >= pools.length) {revert InvalidPool();}
+        if (amountToStakeParam <= 0) {revert AmountShouldBeGreaterThanZero();}
 
-        StakingPool storage pool = pools[_poolId];
-        if (pool.totalStaked + _amountToStake > pool.maxCap) {revert ExceedPoolCap();}
+        StakingPool storage pool = pools[poolIdParam];
+        if (pool.totalStaked + amountToStakeParam > pool.maxCap) {revert ExceedPoolCap();}
 
-        User storage user = users[_poolId][msg.sender];
-        if (user.stakedAmount + _amountToStake > walletCap[_poolId]) {revert WalletCapExceeds();}
+        User storage user = users[poolIdParam][msg.sender];
+        if (user.stakedAmount + amountToStakeParam > walletCap[poolIdParam]) {revert WalletCapExceeds();}
 
-        _claimReward(_poolId, msg.sender);
-        uint256 depositFee = (_amountToStake * depositFeePercentage) / DIVISOR;
-        uint256 amountAfterFee = _amountToStake - depositFee;
+        _claimReward(poolIdParam, msg.sender);
+        uint256 depositFee = (amountToStakeParam * depositFeePercentage) / DIVISOR;
+        uint256 amountAfterFee = amountToStakeParam - depositFee;
         if (depositFee > 0) {
             token.transferFrom(msg.sender, feeWallet, depositFee);
         }
@@ -480,17 +480,17 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
         user.lastDepositTime = block.timestamp;
         user.lastRewardClaim = block.timestamp;
 
-        emit Deposit(msg.sender, _poolId, amountAfterFee);
+        emit Deposit(msg.sender, poolIdParam, amountAfterFee);
     }
 
     /// @notice user can withdraw his tokens
-    /// @param _amountToWithdraw: number of tokens he want to withdraw
+    /// @param amountToWithdrawParam: number of tokens he want to withdraw
     ///@param poolId: pool id
     /// Requirements--
     /// staked amount must be greater than zero
     /// input amount must be greater than zero
     /// lock period should have been passed
-    function withdraw(uint256 poolId, uint256 _amountToWithdraw) external nonReentrant {
+    function withdraw(uint256 poolId, uint256 amountToWithdrawParam) external nonReentrant {
         if (poolId >= pools.length) {revert InvalidPool();}
 
         StakingPool storage pool = pools[poolId];
@@ -498,27 +498,27 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
         User storage user = users[poolId][msg.sender];
 
         if (user.stakedAmount == 0) {revert NothingStaked();}
-        if (_amountToWithdraw == 0) {revert AmountShouldBeGreaterThanZero();}
-        if (_amountToWithdraw > user.stakedAmount) {revert AmountExceedStakedAmount();}
+        if (amountToWithdrawParam == 0) {revert AmountShouldBeGreaterThanZero();}
+        if (amountToWithdrawParam > user.stakedAmount) {revert AmountExceedStakedAmount();}
         if (block.timestamp < user.lastDepositTime + pool.lockedPeriod) {revert LockupPeriodNotPassed();}
 
-        uint256 withdrawalFee = (_amountToWithdraw * withdrawalFeePercentage) / DIVISOR;
-        uint256 amountAfterFee = _amountToWithdraw - withdrawalFee;
-        pool.totalStaked = pool.totalStaked - _amountToWithdraw;
-        user.stakedAmount = user.stakedAmount - _amountToWithdraw;
+        uint256 withdrawalFee = (amountToWithdrawParam * withdrawalFeePercentage) / DIVISOR;
+        uint256 amountAfterFee = amountToWithdrawParam - withdrawalFee;
+        pool.totalStaked = pool.totalStaked - amountToWithdrawParam;
+        user.stakedAmount = user.stakedAmount - amountToWithdrawParam;
         if (withdrawalFee > 0) {
             token.transfer(feeWallet, withdrawalFee);
         }
         _claimReward(poolId, msg.sender);
         token.transfer(msg.sender, amountAfterFee);
 
-        emit Withdraw(msg.sender, poolId, _amountToWithdraw);
+        emit Withdraw(msg.sender, poolId, amountToWithdrawParam);
     }
 
     /// @notice user claim pending earning
-    /// @param _poolId: pool id
-    function claimReward(uint256 _poolId) external nonReentrant {
-        _claimReward(_poolId, msg.sender);
+    /// @param poolIdParam: pool id
+    function claimReward(uint256 poolIdParam) external nonReentrant {
+        _claimReward(poolIdParam, msg.sender);
     }
 
     /// @notice this function can be used to withdraw tokens earlier than lock period
@@ -545,25 +545,25 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
     }
 
     /// @dev update pools apy
-    /// @param _poolId: pool id to be updated
-    /// @param _newAPY: new apy to be set
+    /// @param poolIdParam: pool id to be updated
+    /// @param newAPYParam: new apy to be set
     /// Requirements-
     /// pool id must be valid, and new apy should be greator than 0.01% and less than 50%
-    function updatePoolAPY(uint256 _poolId, uint256 _newAPY) external onlyOwner {
-        StakingPool storage pool = pools[_poolId];
-        if (_newAPY <= 1 || _newAPY >= 5000) {revert ApyRangeExceeds();}
-        pool.apy = _newAPY;
+    function updatePoolAPY(uint256 poolIdParam, uint256 newAPYParam) external onlyOwner {
+        StakingPool storage pool = pools[poolIdParam];
+        if (newAPYParam <= 1 || newAPYParam >= 5000) {revert ApyRangeExceeds();}
+        pool.apy = newAPYParam;
     }
 
     /// @dev update reward allocation percentage per pool
-    /// @param _poolId: pool id to allocated new percentage
+    /// @param poolIdParam: pool id to allocated new percentage
     /// @param newPercentage: new percentage amount
     /// Requirements -
     /// min percentage for pool can be 0.05%
-    function updateRewardAllocationPercentage(uint256 _poolId, uint256 newPercentage) external onlyOwner {
-        if (_poolId >= pools.length) {revert InvalidPool();}
+    function updateRewardAllocationPercentage(uint256 poolIdParam, uint256 newPercentage) external onlyOwner {
+        if (poolIdParam >= pools.length) {revert InvalidPool();}
         if (newPercentage < 5) {revert PercentShouldBeAtleastFive();}
-        StakingPool storage pool = pools[_poolId];
+        StakingPool storage pool = pools[poolIdParam];
         pool.rewardPercent = newPercentage;
 
     }
@@ -596,15 +596,15 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
 
     /// @dev update Deposit and withdrawal fee (must be within 10 percent combined)
     /// @param newDepositFee: new deposit fees
-    /// @param newWithdrawlFee: new withdrawl fee
+    /// @param newWithdrawalFee: new withdrawal fee
     /// Fee is in basis point system
     /// input 1 means 0.01%
     /// input 10 means 0.1%
     /// input 100 means 1% and so on
-    function updateDepositAndWithdrawFee(uint256 newDepositFee, uint256 newWithdrawlFee) external onlyOwner {
-        if (newDepositFee + newWithdrawlFee > 1000) {revert MaxFeeCap();}
+    function updateDepositAndWithdrawFee(uint256 newDepositFee, uint256 newWithdrawalFee) external onlyOwner {
+        if (newDepositFee + newWithdrawalFee > 1000) {revert MaxFeeCap();}
         depositFeePercentage = newDepositFee;
-        withdrawalFeePercentage = newWithdrawlFee;
+        withdrawalFeePercentage = newWithdrawalFee;
     }
 
     /// @dev set penalty fee in basis points
@@ -634,47 +634,47 @@ contract ISOMAStaking is Ownable2Step, ReentrancyGuard {
     }
 
     /// @notice internal function to handle user claim
-    /// @param _poolId: pool id from which pending earning needs to be claimed
-    /// @param _user: user wallet address
+    /// @param poolIdParam: pool id from which pending earning needs to be claimed
+    /// @param userParam: user wallet address
     /// Requirements:
-    /// user staked amount must be greator than zero
+    /// user staked amount must be greater than zero
     /// pool id must be valid
-    function _claimReward(uint256 _poolId, address _user) private {
-        if (_poolId >= pools.length) {revert InvalidPool();}
+    function _claimReward(uint256 poolIdParam, address userParam) private {
+        if (poolIdParam >= pools.length) {revert InvalidPool();}
 
-        User storage user = users[_poolId][_user];
+        User storage user = users[poolIdParam][userParam];
 
-        uint256 rewards = calculateRewards(_poolId, _user);
-        uint256 availableRewards = poolRewards[_poolId];
+        uint256 rewards = calculateRewards(poolIdParam, userParam);
+        uint256 availableRewards = poolRewards[poolIdParam];
 
         if (rewards > 0 && availableRewards > 0) {
 
             if (availableRewards < rewards) {
                 totalRewards = totalRewards - availableRewards;
-                poolRewards[_poolId] = 0;
+                poolRewards[poolIdParam] = 0;
                 user.rewardClaimed = user.rewardClaimed + availableRewards;
                 user.lastRewardClaim = block.timestamp;
-                token.transfer(_user, availableRewards);
-                emit RewardClaimed(_user, _poolId, availableRewards);
+                token.transfer(userParam, availableRewards);
+                emit RewardClaimed(userParam, poolIdParam, availableRewards);
             }
             else {
                 totalRewards = totalRewards - rewards;
-                poolRewards[_poolId] = poolRewards[_poolId] - rewards;
+                poolRewards[poolIdParam] = poolRewards[poolIdParam] - rewards;
                 user.rewardClaimed = user.rewardClaimed + rewards;
                 user.lastRewardClaim = block.timestamp;
-                token.transfer(_user, rewards);
-                emit RewardClaimed(_user, _poolId, rewards);
+                token.transfer(userParam, rewards);
+                emit RewardClaimed(userParam, poolIdParam, rewards);
             }
         }
     }
 
     /// @notice Returns the pending earning based on pool id and user address
-    /// @param _poolId: pool id
-    /// @param _user: user wallet address
+    /// @param poolIdParam: pool id
+    /// @param userParam: user wallet address
     /// it calculate rewards based on fixed apy of 365 days
-    function calculateRewards(uint256 _poolId, address _user) public view returns (uint256) {
-        StakingPool storage pool = pools[_poolId];
-        User storage user = users[_poolId][_user];
+    function calculateRewards(uint256 poolIdParam, address userParam) public view returns (uint256) {
+        StakingPool storage pool = pools[poolIdParam];
+        User storage user = users[poolIdParam][userParam];
 
         uint256 lastRewardClaim = user.lastRewardClaim;
         uint256 stakedAmount = user.stakedAmount;
